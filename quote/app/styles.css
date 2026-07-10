@@ -1,6 +1,6 @@
 /*
-Nexmin Trading
-nexmintrading.com
+Arteria Studio
+agencyarteria.com
 */
 
 /* ──────────────────────────────────────────────
@@ -16,6 +16,7 @@ nexmintrading.com
 	--red-dim:			rgba(232,25,44,0.12);
 	--red-glow:			rgba(232,25,44,0.25);
 	--white:			#f4f3ef;
+	--black:			#000000;
 	--muted:			rgba(244,243,239,0.45);
 	--muted2:			rgba(244,243,239,0.22);
 	--gold:				#c9953a;
@@ -40,7 +41,7 @@ html { scroll-behavior: smooth; }
 
 body {
 	font-family: var(--font-primary);
-	background: var(--bg);
+	background: var(--black);
 	color: var(--white);
 	overflow-x: hidden;
 	-webkit-font-smoothing: antialiased;
@@ -134,7 +135,7 @@ body::after {
 .brand-mark {
 	width: 32px;
 	height: 32px;
-	background-image: url(favicon.ico);
+	background-image: url(brand.svg);
 	background-size: contain;
 	background-repeat: no-repeat;
 }
@@ -1367,6 +1368,11 @@ body::after {
 	line-height: 1.8;
 }
 
+.footer-right a {
+	color: var(--muted2);
+	text-decoration: none;
+}
+
 .confidential-strip {
 	margin: 28px 0;
 	background: var(--red);
@@ -1380,4 +1386,215 @@ body::after {
 	text-align: center;
 	padding: 9px;
 	grid-column: 1 / -1;
+}
+
+/* ══════════════════════════════════════════════
+   PRINT — Black y White, Markdown-style clean
+══════════════════════════════════════════════ */
+@media print {
+  /* Reset screen-only chrome */
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  body {
+	background: #fff !important;
+	color: #000 !important;
+	font-size: 11pt;
+	font-family: Georgia, 'Times New Roman', serif;
+	line-height: 1.5;
+  }
+
+  /* Hide decorative y interactive elements */
+  .cover-grid,
+  .cover::before,
+  .cover::after,
+  .breakdown-bar,
+  .breakdown-fill,
+  .confidential-banner,
+  .watermark,
+  .page-break::before,
+  .scroll-hint,
+  .topbar-badge { display: none !important; }
+
+  /* Cover — simplified */
+  .cover {
+	background: #fff !important;
+	min-height: auto;
+	padding: 24pt 32pt;
+	border-bottom: 3pt solid #000;
+	page-break-after: always;
+  }
+
+  .cover-logo {
+	color: #000 !important;
+	font-family: Georgia, serif;
+	letter-spacing: 0;
+	font-size: 10pt;
+	margin-bottom: 32pt;
+	border-bottom: 1pt solid #000;
+	padding-bottom: 8pt;
+  }
+
+  .cover-eyebrow { color: #000 !important; font-family: monospace; font-size: 9pt; }
+  .cover-eyebrow::before { background: #000 !important; }
+
+  .cover-title { color: #000 !important; font-size: 36pt; font-family: Georgia, serif; }
+  .cover-title em { color: #000 !important; font-style: italic; }
+  .cover-subtitle { color: #555 !important; font-size: 18pt; font-family: Georgia, serif; }
+
+  .cover-meta { gap: 16pt; }
+  .cover-meta-item { border-top: 1pt solid #000 !important; padding-top: 6pt; }
+  .cover-meta-label { color: #000 !important; font-size: 8pt; font-family: monospace; }
+  .cover-meta-value { color: #000 !important; font-size: 11pt; }
+
+  .cover-footer { border-top: 1pt solid #ccc !important; }
+  .cover-footer-left, .cover-footer-right { color: #666 !important; font-size: 8pt; font-family: monospace; }
+
+  /* Page */
+  .page { padding: 16pt 32pt; max-width: 100%; }
+
+  .topbar { background-color: white; }
+
+  /* Section headers — markdown H2 style */
+  .section-header {
+	border-bottom: 2pt solid #000 !important;
+	margin-bottom: 14pt;
+	padding-bottom: 10pt;
+	page-break-inside: avoid;
+  }
+
+  .section-num { color: #ccc !important; font-size: 40pt; }
+  .section-tag { color: #000 !important; font-family: monospace; font-size: 8pt; }
+  .section-title { color: #000 !important; font-size: 18pt; font-family: Georgia, serif; }
+  .section-desc { color: #444 !important; font-size: 10pt; }
+
+  /* Table scroll wrapper — remove scroll, just let it flow */
+  .table-scroll {
+	overflow: visible !important;
+	background: none !important;
+  }
+
+  /* Tables — clean markdown-style */
+  .budget-table {
+	min-width: unset !important;
+	width: 100% !important;
+	border-collapse: collapse;
+	font-size: 10pt;
+	page-break-inside: auto;
+  }
+
+  .budget-table thead tr { background: #000 !important; }
+
+  .budget-table th {
+	color: #fff !important;
+	background: #000 !important;
+	font-family: monospace;
+	font-size: 8pt;
+	padding: 6pt 8pt;
+	letter-spacing: 0;
+	border: 1pt solid #000;
+  }
+
+  .budget-table td {
+	padding: 7pt 8pt;
+	border: 1pt solid #999;
+	color: #000 !important;
+	background: #fff !important;
+  }
+
+  .budget-table tbody tr { border-bottom: 1pt solid #ccc !important; }
+  .budget-table tbody tr:hover { background: #fff !important; }
+
+  .item-name { font-size: 10pt; font-weight: bold; color: #000 !important; }
+  .item-desc { font-size: 9pt; color: #333 !important; }
+
+  .item-tag {
+	background: none !important;
+	color: #000 !important;
+	border: 1pt solid #999;
+	font-family: monospace;
+	font-size: 7pt;
+  }
+
+  .col-qty, .col-unit, .col-price, .col-total {
+	color: #000 !important;
+	font-family: monospace;
+	font-size: 10pt;
+  }
+
+  .subtotal-row td {
+	background: #eee !important;
+	border-top: 2pt solid #000 !important;
+  }
+
+  .subtotal-label { color: #000 !important; font-family: monospace; font-size: 9pt; }
+  .subtotal-amount { color: #000 !important; font-family: monospace; font-size: 12pt; }
+
+  /* Breakdown grid — simple list in print */
+  .breakdown-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 0;
+	background: #000 !important;
+	border: 1pt solid #000 !important;
+  }
+
+  .breakdown-card {
+	background: #fff !important;
+	border: none;
+	padding: 10pt;
+  }
+
+  .breakdown-num { color: #000 !important; font-size: 20pt; font-family: Georgia, serif; }
+  .breakdown-label { color: #555 !important; font-family: monospace; font-size: 7pt; }
+  .breakdown-amount { color: #000 !important; font-family: monospace; font-size: 10pt; }
+
+  /* Grand total block */
+  .grand-total-block {
+	background: #000 !important;
+	padding: 20pt 24pt;
+	page-break-inside: avoid;
+	margin-top: 24pt;
+  }
+
+  .grand-total-block::before { display: none; }
+  .grand-total-inner { grid-template-columns: 1fr auto; gap: 24pt; }
+  .grand-total-label { color: #ccc !important; font-family: monospace; font-size: 8pt; }
+  .grand-total-title { color: #fff !important; font-family: Georgia, serif; font-size: 14pt; }
+  .grand-total-note { color: #aaa !important; font-size: 9pt; }
+
+  .amount-label { color: #aaa !important; font-family: monospace; font-size: 8pt; }
+  .amount-value { color: #fff !important; font-family: monospace; font-size: 11pt; }
+  .amount-value.highlight { color: #fff !important; font-size: 22pt; }
+  .amount-row { border-bottom-color: rgba(255,255,255,0.15) !important; }
+
+  /* Notes */
+  .note-box {
+	border-left: 3pt solid #000 !important;
+	background: #f5f5f5 !important;
+	color: #333 !important;
+	font-size: 9pt;
+	page-break-inside: avoid;
+  }
+
+  .note-box strong { color: #000 !important; }
+
+  /* Terms */
+  .term-block { border-top: 2pt solid #000 !important; page-break-inside: avoid; }
+  .term-title { color: #000 !important; font-family: monospace; font-size: 8pt; }
+  .term-content { color: #333 !important; font-size: 9.5pt; }
+  .term-content strong { color: #000 !important; }
+
+  /* Dividers */
+  .page-break { border-top: 1pt dashed #ccc !important; margin: 20pt 0 16pt; }
+
+  /* Signatures */
+  .signature-line { border-top: 1pt solid #000 !important; }
+  .signature-label { color: #333 !important; font-family: monospace; font-size: 8pt; }
+
+  /* Footer */
+  .page > div:last-of-type { border-top: 1pt solid #ccc !important; }
+
+  /* Page breaks between modules */
+  .section-header { page-break-before: auto; }
+  .grand-total-block { page-break-before: always; }
 }
