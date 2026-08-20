@@ -1,94 +1,62 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <!-- Polaris -->
     <script src="https://cdn.shopify.com/shopifycloud/polaris.js"></script>
-
     <title>MOQ Pako</title>
 
     <style>
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        background: #f6f6f7;
-      }
-
-      body {
-        min-height: 100vh;
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-          Arial, sans-serif;
-      }
-
-      .app-container {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 32px 24px 48px;
-      }
-
-      .hero {
-        margin-bottom: 24px;
-      }
-
-      .grid {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 20px;
-        align-items: start;
-      }
-
-      .section {
-        margin-top: 20px;
-      }
-
-      .tag-code {
-        display: inline-block;
-        padding: 3px 7px;
-        border-radius: 5px;
-        background: #f1f1f1;
-        font-family: monospace;
-        font-size: 13px;
-      }
-
-      .example-box {
-        padding: 16px;
-        background: #f6f6f7;
-        border-radius: 8px;
-        margin-top: 12px;
-      }
-
-      .moq-value {
-        font-weight: 600;
-        font-size: 16px;
-      }
-
-      @media (max-width: 768px) {
-        .app-container {
-          padding: 20px 16px 32px;
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f6f6f7;
         }
-
-        .grid {
-          grid-template-columns: 1fr;
+        body {
+            min-height: 100vh;
+            font-family:
+            -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+            Arial, sans-serif;
         }
-      }
+        .section {
+            margin-top: 20px;
+        }
+        .content-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+            gap: 20px;
+            align-items: start;
+        }
+        .tag-code {
+            display: inline-block;
+            padding: 3px 7px;
+            border-radius: 5px;
+            background: #f1f1f1;
+            font-family: monospace;
+            font-size: 13px;
+        }
+        .example-box {
+            padding: 16px;
+            background: #f6f6f7;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+        .moq-value {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
   </head>
 
   <body>
-    <div class="app-container">
-      <!-- HEADER -->
-      <div class="hero">
-        <s-page heading="MOQ Pako">
-          <s-badge tone="success"> Active </s-badge>
-        </s-page>
-      </div>
-
-      <!-- INTRO -->
+    <s-page heading="MOQ Pako">
+      <s-badge tone="success"> Active </s-badge>
       <div class="section">
         <s-section heading="Minimum Order Quantity">
           <s-paragraph>
@@ -99,10 +67,8 @@
         </s-section>
       </div>
 
-      <!-- MAIN CONTENT -->
       <div class="section">
-        <div class="grid">
-          <!-- LEFT COLUMN -->
+        <div class="content-grid">
           <div>
             <s-section heading="Tag Format">
               <s-paragraph>
@@ -119,45 +85,38 @@
                         <th>MOQ Extracted</th>
                       </tr>
                     </thead>
-
                     <tbody>
                       <tr>
                         <td>
-                          <span class="tag-code"> min4 </span>
+                          <span class="tag-code">min4</span>
                         </td>
 
                         <td>
-                          <span class="moq-value"> 4 </span>
-                        </td>
-                      </tr>
-
-                      <tr>
-                        <td>
-                          <span class="tag-code"> min8 </span>
-                        </td>
-
-                        <td>
-                          <span class="moq-value"> 8 </span>
+                          <span class="moq-value">4</span>
                         </td>
                       </tr>
-
                       <tr>
                         <td>
-                          <span class="tag-code"> min12 </span>
+                          <span class="tag-code">min8</span>
                         </td>
-
                         <td>
-                          <span class="moq-value"> 12 </span>
+                          <span class="moq-value">8</span>
                         </td>
                       </tr>
-
                       <tr>
                         <td>
-                          <span class="tag-code"> min100 </span>
+                          <span class="tag-code">min12</span>
                         </td>
-
                         <td>
-                          <span class="moq-value"> 100 </span>
+                          <span class="moq-value">12</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <span class="tag-code">min100</span>
+                        </td>
+                        <td>
+                          <span class="moq-value">100</span>
                         </td>
                       </tr>
                     </tbody>
@@ -166,7 +125,6 @@
               </div>
             </s-section>
 
-            <!-- MULTIPLE TAGS -->
             <div class="section">
               <s-section heading="Multiple minX tags">
                 <s-paragraph>
@@ -174,18 +132,13 @@
                   <strong>minX</strong>
                   tags, the highest value is used as the product's MOQ.
                 </s-paragraph>
-
                 <div class="example-box">
                   <s-paragraph> Tags: </s-paragraph>
-
                   <p>
-                    <span class="tag-code"> min4 </span>
-
+                    <span class="tag-code">min4</span>
                     &nbsp;
-
-                    <span class="tag-code"> min12 </span>
+                    <span class="tag-code">min12</span>
                   </p>
-
                   <s-paragraph>
                     Extracted MOQ:
                     <strong>12</strong>
@@ -194,8 +147,7 @@
               </s-section>
             </div>
           </div>
-
-          <!-- RIGHT COLUMN -->
+          
           <div>
             <s-section heading="How it works">
               <s-stack direction="block" gap="base">
@@ -203,40 +155,33 @@
                   <s-text>
                     <strong>1. Product tags</strong>
                   </s-text>
-
                   <s-paragraph>
                     The app reads the tags assigned to each Shopify product.
                   </s-paragraph>
                 </s-box>
-
                 <s-box>
                   <s-text>
                     <strong>2. MOQ detection</strong>
                   </s-text>
-
                   <s-paragraph>
                     Tags matching
                     <strong>minX</strong>
                     are converted into numeric values.
                   </s-paragraph>
                 </s-box>
-
                 <s-box>
                   <s-text>
                     <strong>3. Highest value</strong>
                   </s-text>
-
                   <s-paragraph>
                     When several valid tags exist, the highest number becomes
                     the MOQ.
                   </s-paragraph>
                 </s-box>
-
                 <s-box>
                   <s-text>
                     <strong>4. Enforcement</strong>
                   </s-text>
-
                   <s-paragraph>
                     The minimum quantity is enforced when the customer attempts
                     to proceed with the order.
@@ -256,12 +201,9 @@
         </div>
       </div>
 
-      <!-- FOOTER -->
       <div class="section">
-        <s-section>
-          <s-text tone="subdued"> MOQ Pako · Minimum Order Quantity </s-text>
-        </s-section>
+        <s-text tone="subdued"> MOQ Pako · Minimum Order Quantity </s-text>
       </div>
-    </div>
+    </s-page>
   </body>
 </html>
