@@ -1,0 +1,12 @@
+{
+  "enabled": true,
+  "tagPattern": "^min(\\d+)$",
+  "selectors": {
+    "cartForm": "form[action=\"/cart\"], [data-cart-form], .cart-items",
+    "checkoutButton": "button[name=\"checkout\"], a[href=\"/checkout\"], [data-checkout-button]"
+  },
+  "messages": {
+    "title": "Cantidad mínima requerida",
+    "description": "Para continuar, debes alcanzar la cantidad mínima de pedido para este producto."
+  }
+}

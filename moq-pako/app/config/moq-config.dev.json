@@ -1,0 +1,9 @@
+{
+  "defaultMoq": 1,
+  "moqBannerTitle": "Cantidad Mínima Requerida",
+  "minBadgeLabel": "Min:",
+  "currentBadgeLabel": "Actual:",
+  "permissionBannerTitle": "Permiso pendiente",
+  "permissionBannerText": "Esta app puede mostrar advertencias pero no bloquear el checkout. Actívalo en Configuración → Checkout → Apps.",
+  "blockProgressReason": "Cantidad mínima de pedido no cumplida"
+}
