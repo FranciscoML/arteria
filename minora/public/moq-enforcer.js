@@ -6,7 +6,7 @@
 (function () {
   "use strict";
 
-  const MOQ_APP_URL = "https://agencyarteria.com/moq-pako/";
+  const MOQ_APP_URL = "https://agencyarteria.com/minora";
   const MOQ_TAG_PATTERN = /^min(\d+)$/i;
   const VALIDATION_DEBOUNCE_MS = 300;
 
