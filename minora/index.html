@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.shopify.com/shopifycloud/polaris.js"></script>
-    <title>MOQ Pako</title>
+    <title>Minora</title>
 
     <style>
         html,
@@ -24,7 +24,7 @@
         }
         .content-grid {
             display: grid;
-            grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+            grid-template-columns: minmax(0, 2fr) minmax(280px, 2fr);
             gap: 20px;
             align-items: start;
         }
@@ -46,6 +46,11 @@
             font-weight: 600;
             font-size: 16px;
         }
+        a {
+          text-decoration: none;
+          color: black;
+          font-style: italic;
+        }
         @media (max-width: 768px) {
             .content-grid {
                 grid-template-columns: 1fr;
@@ -55,7 +60,7 @@
   </head>
 
   <body>
-    <s-page heading="MOQ Pako">
+    <s-page heading="Minora">
       <s-badge tone="success"> Active </s-badge>
       <div class="section">
         <s-section heading="Minimum Order Quantity">
@@ -202,7 +207,7 @@
       </div>
 
       <div class="section">
-        <s-text tone="subdued"> MOQ Pako · Minimum Order Quantity </s-text>
+        <s-text tone="subdued"> Minora · By <a href="mailto:fco.jmoral@gmail.com" target="_blank">Francisco M. L.</a> </s-text>
       </div>
     </s-page>
   </body>
