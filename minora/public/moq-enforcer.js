@@ -44,8 +44,7 @@
    * hizo falta tocar el DOM — así evitamos mutaciones innecesarias que
    * retriggerean el MutationObserver.
    */
-  function showMoqWarning(productTitle, required, current) {
-    // Remove existing warning
+  function showMoqWarning(productTitles, required, current) {
     const existing = document.querySelector("[data-moq-warning-handle]");
 
     if (existing) {
@@ -81,13 +80,23 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   `;
 
-    // Escape product title before inserting into innerHTML
-    const safeProductTitle = String(productTitle)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    const titlesHtml = Array.isArray(productTitles)
+      ? productTitles
+          .map(
+            (t) =>
+              `<div style="font-size: 13px;line-height: 18px;font-weight: 600;color: #3f3100;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;" title="${escapeHtml(t)}">${escapeHtml(t)}</div>`,
+          )
+          .join("")
+      : `<div style="font-size: 13px;line-height: 18px;font-weight: 600;color: #3f3100;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;" title="${escapeHtml(String(productTitles))}">${escapeHtml(String(productTitles))}</div>`;
 
     const remaining = Math.max(required - current, 0);
 
@@ -109,7 +118,7 @@
           Minimum quantity required
         </div>
         <div style="font-size: 13px;line-height: 18px;color: #725900;">
-          To continue, you must meet the minimum quantity requirement for this product.
+          To continue, you must meet the minimum quantity requirement for this product. You can combine different colors/variants to reach the minimum.
         </div>
       </div>
     </div>
@@ -119,10 +128,7 @@
 
       <!-- Product -->
       <div style="min-width: 0;flex: 1;">
-        <div style="font-size: 13px;line-height: 18px;font-weight: 600;color: #3f3100;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;"
-          title="${safeProductTitle}">
-          ${safeProductTitle}
-        </div>
+        ${titlesHtml}
         <div style="margin-top: 2px;font-size: 12px;line-height: 17px;color: #7a650f;">
           Minimum required:
           <strong>${required} units</strong>
@@ -254,15 +260,36 @@
         .querySelectorAll("[data-moq-warning-handle]")
         .forEach((el) => el.remove());
 
+      // Agrupar líneas del carrito por producto (product_id). Variantes de un
+      // mismo producto comparten product_id (ej. mismo producto en distintos
+      // colores), de modo que sus cantidades se suman para cumplir el MOQ.
+      const productGroups = {};
       for (const item of cart.items) {
         const handle = item.handle || item.product_handle;
-        const tags = productTagsMap[handle] || [];
-        const moq = extractMoqFromTags(tags);
+        if (!handle) continue;
 
-        if (moq !== null && item.quantity < moq) {
+        if (!productGroups[handle]) {
+          productGroups[handle] = {
+            titles: [],
+            totalQuantity: 0,
+            moq: extractMoqFromTags(productTagsMap[handle] || []),
+            keys: [],
+          };
+        }
+        const group = productGroups[handle];
+        group.titles.push(item.title);
+        group.totalQuantity += item.quantity;
+        group.keys.push(item.key);
+      }
+
+      for (const handle of Object.keys(productGroups)) {
+        const group = productGroups[handle];
+        if (group.moq !== null && group.totalQuantity < group.moq) {
           hasError = true;
-          showMoqWarning(item.title, moq, item.quantity);
-          trySetQuantityInputMin(item, moq);
+          showMoqWarning(group.titles, group.moq, group.totalQuantity);
+          for (const key of group.keys) {
+            trySetQuantityInputMin({ key }, group.moq);
+          }
         }
       }
 
