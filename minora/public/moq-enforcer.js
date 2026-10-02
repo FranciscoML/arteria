@@ -164,7 +164,7 @@
    */
   function disableCheckout() {
     const checkoutBtn = document.querySelector(
-      'button[name="checkout"], a[href="/checkout"], [data-checkout-button]',
+      'button[name="checkout"], a[href="/checkout"], [data-checkout-button], button[class="cart-view-button"]',
     );
     if (checkoutBtn) {
       checkoutBtn.style.opacity = "0.5";
