@@ -3,7 +3,8 @@
   "tagPattern": "^min(\\d+)$",
   "selectors": {
     "cartForm": "form[action=\"/cart\"], [data-cart-form], .cart-items",
-    "checkoutButton": "button[name=\"checkout\"], a[href=\"/checkout\"], [data-checkout-button]"
+    "checkoutButton": "button[name=\"checkout\"], a[href=\"/checkout\"], [data-checkout-button]",
+    "cartViewButton": "button[class=\"cart-view-button\"], a[href=\"/cart\"], [data-cart-view-button]"
   },
   "messages": {
     "title": "Cantidad mínima requerida",
