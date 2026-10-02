@@ -132,12 +132,16 @@ body::after {
 	gap: 10px;
 }
 
+/* El logo va como <img>, no como background-image: los navegadores
+   omiten los fondos al imprimir salvo que el usuario active
+   «Gráficos de fondo», mientras que el contenido de un <img> siempre
+   se imprime. Ver scripts.js para el respaldo a brand-01.png. */
 .brand-mark {
+	display: block;
 	width: 32px;
 	height: 32px;
-	background-image: url(brand.svg);
-	background-size: contain;
-	background-repeat: no-repeat;
+	object-fit: contain;
+	object-position: left center;
 }
 
 .brand-name {
@@ -757,9 +761,14 @@ body::after {
 /* Phase rows */
 .gantt-row {
 	display: grid;
-	grid-template-columns: 220px repeat(10, 1fr);
 	border-bottom: 1px solid var(--border);
 	transition: background .2s;
+}
+.grid-4-cols {
+	grid-template-columns: 220px repeat(4, 1fr);
+}
+.grid-10-cols {
+	grid-template-columns: 220px repeat(10, 1fr);
 }
 
 .gantt-row:last-child { border-bottom: none; }
@@ -879,9 +888,18 @@ body::after {
 ────────────────────────────────────────────── */
 .phases-grid {
 	display: grid;
-	grid-template-columns: repeat(3, 1fr);
 	gap: 12px;
 	margin-top: 44px;
+}
+
+.phases-grid.two-one {
+	grid-template-columns: repeat(2, 1fr);
+}
+.phases-grid.three-one {
+	grid-template-columns: repeat(3, 1fr);
+}
+.phases-grid.four-one {
+	grid-template-columns: repeat(4, 1fr);
 }
 
 @media (max-width: 900px) { .phases-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -912,7 +930,7 @@ body::after {
 
 .phase-card-num {
 	font-family: var(--font-secondary);
-	font-size: 9px;
+	font-size: 12px;
 	letter-spacing: 0.12em;
 	text-transform: uppercase;
 	color: var(--muted2);
@@ -940,7 +958,7 @@ body::after {
 .phase-card-days {
 	display: inline-block;
 	font-family: var(--font-secondary);
-	font-size: 10px;
+	font-size: 12px;
 	color: var(--phase-color);
 	background: color-mix(in srgb, var(--phase-color) 12%, transparent);
 	border: 1px solid color-mix(in srgb, var(--phase-color) 30%, transparent);
@@ -1336,11 +1354,11 @@ body::after {
 }
 
 .footer-brand-mark {
+	display: block;
 	width: 24px;
 	height: 24px;
-	background-image: url(brand.svg);
-	background-size: contain;
-	background-repeat: no-repeat;
+	object-fit: contain;
+	object-position: left center;
 }
 
 .footer-brand-name {
@@ -1388,213 +1406,1096 @@ body::after {
 	grid-column: 1 / -1;
 }
 
-/* ══════════════════════════════════════════════
-   PRINT — Black y White, Markdown-style clean
-══════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════
+   # PRINT · Documento Markdown en blanco y negro
+   ═══════════════════════════════════════════════════════════════════ */
 @media print {
-  /* Reset screen-only chrome */
-  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+	:root {
+		/* Superficies: nada conserva fondo oscuro */
+		--bg:			#fff;
+		--bg2:			#fff;
+		--bg3:			#fff;
+		--black:		#fff;
 
-  body {
-	background: #fff !important;
-	color: #000 !important;
-	font-size: 11pt;
-	font-family: Georgia, 'Times New Roman', serif;
-	line-height: 1.5;
-  }
+		/* Textos claros de pantalla → tonos negros */
+		--white:		#000;
+		--muted:		#1f1f1f;
+		--muted2:		#3d3d3d;
 
-  /* Hide decorative y interactive elements */
-  .cover-grid,
-  .cover::before,
-  .cover::after,
-  .breakdown-bar,
-  .breakdown-fill,
-  .confidential-banner,
-  .watermark,
-  .page-break::before,
-  .scroll-hint,
-  .topbar-badge { display: none !important; }
+		/* Acentos de color cuando son texto → negro */
+		--red:			#000;
+		--gold:			#000;
+		--cyan:			#000;
+		--gold-light:	#000;
 
-  /* Cover — simplified */
-  .cover {
-	background: #fff !important;
-	min-height: auto;
-	padding: 24pt 32pt;
-	border-bottom: 3pt solid #000;
-	page-break-after: always;
-  }
+		/* Acentos de color cuando son fondo → blanco */
+		--red-dim:		#fff;
+		--red-glow:		#fff;
+		--phase1:		#fff;
+		--phase2:		#fff;
+		--phase3:		#fff;
+		--phase4:		#fff;
+		--phase5:		#fff;
+		--phase6:		#fff;
 
-  .cover-logo {
-	color: #000 !important;
-	font-family: Georgia, serif;
-	letter-spacing: 0;
-	font-size: 10pt;
-	margin-bottom: 32pt;
-	border-bottom: 1pt solid #000;
-	padding-bottom: 8pt;
-  }
+		/* Bordes: pelo invisible salvo regla explícita en negro */
+		--border:		#fff;
+		--border2:		#000;
 
-  .cover-eyebrow { color: #000 !important; font-family: monospace; font-size: 9pt; }
-  .cover-eyebrow::before { background: #000 !important; }
+		/* Tipografías de impresión */
+		--font-prose:	Georgia, 'Times New Roman', serif;
+		--font-mono:	'DM Mono', ui-monospace, 'Courier New', monospace;
+	}
 
-  .cover-title { color: #000 !important; font-size: 36pt; font-family: Georgia, serif; }
-  .cover-title em { color: #000 !important; font-style: italic; }
-  .cover-subtitle { color: #555 !important; font-size: 18pt; font-family: Georgia, serif; }
+	/* ───────────────────────────────────────────────────────────
+	   ## 1 · PÁGINA
+	   ─────────────────────────────────────────────────────────── */
+	@page {
+		margin: 16mm 14mm;
+	}
 
-  .cover-meta { gap: 16pt; }
-  .cover-meta-item { border-top: 1pt solid #000 !important; padding-top: 6pt; }
-  .cover-meta-label { color: #000 !important; font-size: 8pt; font-family: monospace; }
-  .cover-meta-value { color: #000 !important; font-size: 11pt; }
+	html {
+		scroll-behavior: auto;
+	}
 
-  .cover-footer { border-top: 1pt solid #ccc !important; }
-  .cover-footer-left, .cover-footer-right { color: #666 !important; font-size: 8pt; font-family: monospace; }
+	body {
+		background: #fff !important;
+		color: #000 !important;
+		overflow: visible !important;
+		font-family: var(--font-prose);
+		font-size: 10.5pt;
+		line-height: 1.55;
+		/* Sin `exact`: si algún fondo se escapara del reset, el
+		   motor lo omite en lugar de gastar tinta en un bloque
+		   oscuro o de color. */
+		-webkit-print-color-adjust: economy;
+		print-color-adjust: economy;
+	}
 
-  /* Page */
-  .page { padding: 16pt 32pt; max-width: 100%; }
+	/* ───────────────────────────────────────────────────────────
+	   ## 2 · OBLIGACIÓN DE BLANCO Y NEGRO
+	   ─────────────────────────────────────────────────────────── */
+	*,
+	*::before,
+	*::after {
+		-webkit-print-color-adjust: economy !important;
+		print-color-adjust: economy !important;
 
-  .topbar { background-color: white; }
+		background-color: #fff !important;
+		color: #000 !important;
+		opacity: 1 !important;
 
-  /* Section headers — markdown H2 style */
-  .section-header {
-	border-bottom: 2pt solid #000 !important;
-	margin-bottom: 14pt;
-	padding-bottom: 10pt;
-	page-break-inside: avoid;
-  }
+		box-shadow: none !important;
+		text-shadow: none !important;
+		filter: none !important;
+		backdrop-filter: none !important;
+		mix-blend-mode: normal !important;
+		-webkit-text-stroke-width: 0 !important;
 
-  .section-num { color: #ccc !important; font-size: 40pt; }
-  .section-tag { color: #000 !important; font-family: monospace; font-size: 8pt; }
-  .section-title { color: #000 !important; font-size: 18pt; font-family: Georgia, serif; }
-  .section-desc { color: #444 !important; font-size: 10pt; }
+		transform: none !important;
+		animation: none !important;
+		transition: none !important;
+	}
 
-  /* Table scroll wrapper — remove scroll, just let it flow */
-  .table-scroll {
-	overflow: visible !important;
-	background: none !important;
-  }
+	/* ───────────────────────────────────────────────────────────
+	   ## 3 · CAPAS DECORATIVAS → ELIMINADAS
+	   ─────────────────────────────────────────────────────────── */
+	body::before,
+	body::after,
+	.hero-glow,
+	.grand-total-block::before,
+	.investment-block::before,
+	.gantt-bar::after,
+	.hero-eyebrow::before,
+	.phase-card::before,
+	.cover-grid,
+	.cover::before,
+	.cover::after,
+	.watermark,
+	.scroll-hint,
+	.breakdown-bar,
+	.breakdown-fill,
+	.page-break::before { display: none !important; }
 
-  /* Tables — clean markdown-style */
-  .budget-table {
-	min-width: unset !important;
-	width: 100% !important;
-	border-collapse: collapse;
-	font-size: 10pt;
-	page-break-inside: auto;
-  }
+	/* ───────────────────────────────────────────────────────────
+	   ## 4 · ESTRUCTURA DE PÁGINA
+	   ─────────────────────────────────────────────────────────── */
+	.page {
+		max-width: none !important;
+		padding: 0 !important;
+		overflow: visible !important;
+	}
 
-  .budget-table thead tr { background: #000 !important; }
+	.topbar {
+		position: static !important;
+		background: #fff !important;
+		border-bottom: 1.5pt solid #000 !important;
+		padding: 0 0 7pt !important;
+		page-break-after: avoid;
+		break-after: avoid;
+	}
 
-  .budget-table th {
-	color: #fff !important;
-	background: #000 !important;
-	font-family: monospace;
-	font-size: 8pt;
-	padding: 6pt 8pt;
-	letter-spacing: 0;
-	border: 1pt solid #000;
-  }
+	.topbar-brand { gap: 8pt; }
 
-  .budget-table td {
-	padding: 7pt 8pt;
-	border: 1pt solid #999;
-	color: #000 !important;
-	background: #fff !important;
-  }
+	.brand-mark { width: 22px; height: 22px; }
 
-  .budget-table tbody tr { border-bottom: 1pt solid #ccc !important; }
-  .budget-table tbody tr:hover { background: #fff !important; }
+	.brand-name,
+	.footer-brand-name {
+		font-family: var(--font-mono);
+		font-size: 8.5pt;
+		font-weight: 500;
+		letter-spacing: .14em;
+		color: #000 !important;
+	}
 
-  .item-name { font-size: 10pt; font-weight: bold; color: #000 !important; }
-  .item-desc { font-size: 9pt; color: #333 !important; }
+	.topbar-ref {
+		font-family: var(--font-mono);
+		font-size: 8pt;
+		letter-spacing: .06em;
+		color: #000 !important;
+	}
 
-  .item-tag {
-	background: none !important;
-	color: #000 !important;
-	border: 1pt solid #999;
-	font-family: monospace;
-	font-size: 7pt;
-  }
+	.topbar-badge {
+		background: #fff !important;
+		color: #000 !important;
+		border: .75pt solid #000 !important;
+		border-radius: 0 !important;
+		font-family: var(--font-mono);
+		font-size: 7.5pt;
+		letter-spacing: .08em;
+		padding: 3pt 7pt;
+	}
 
-  .col-qty, .col-unit, .col-price, .col-total {
-	color: #000 !important;
-	font-family: monospace;
-	font-size: 10pt;
-  }
+	.status-dot {
+		background: #fff !important;
+		border: .75pt solid #000;
+		width: 5px;
+		height: 5px;
+	}
 
-  .subtotal-row td {
-	background: #eee !important;
-	border-top: 2pt solid #000 !important;
-  }
+	/* ───────────────────────────────────────────────────────────
+	   ## 5 · PORTADA / HERO — equivalente a `# Título`
+	   ─────────────────────────────────────────────────────────── */
+	.hero {
+		padding: 20pt 0 14pt !important;
+		overflow: visible !important;
+	}
 
-  .subtotal-label { color: #000 !important; font-family: monospace; font-size: 9pt; }
-  .subtotal-amount { color: #000 !important; font-family: monospace; font-size: 12pt; }
+	.hero-eyebrow {
+		background: #fff !important;
+		color: #000 !important;
+		border: .75pt solid #000 !important;
+		border-radius: 0 !important;
+		font-family: var(--font-mono);
+		font-size: 7.5pt;
+		letter-spacing: .16em;
+		padding: 4pt 8pt;
+		margin-bottom: 14pt;
+	}
 
-  /* Breakdown grid — simple list in print */
-  .breakdown-grid {
-	display: grid;
-	grid-template-columns: repeat(3, 1fr);
-	gap: 0;
-	background: #000 !important;
-	border: 1pt solid #000 !important;
-  }
+	.hero-title {
+		font-family: var(--font-prose);
+		font-weight: 700;
+		font-size: 26pt;
+		line-height: 1.1;
+		letter-spacing: -.02em;
+		color: #000 !important;
+	}
 
-  .breakdown-card {
-	background: #fff !important;
-	border: none;
-	padding: 10pt;
-  }
+	.hero-title .project-name,
+	.hero-title .service-name {
+		color: #000 !important;
+		-webkit-text-stroke: 0 !important;
+	}
 
-  .breakdown-num { color: #000 !important; font-size: 20pt; font-family: Georgia, serif; }
-  .breakdown-label { color: #555 !important; font-family: monospace; font-size: 7pt; }
-  .breakdown-amount { color: #000 !important; font-family: monospace; font-size: 10pt; }
+	.hero-title .service-name {
+		font-size: .72em;
+		letter-spacing: -.01em;
+	}
 
-  /* Grand total block */
-  .grand-total-block {
-	background: #000 !important;
-	padding: 20pt 24pt;
-	page-break-inside: avoid;
-	margin-top: 24pt;
-  }
+	.hero-sub {
+		margin-top: 10pt;
+		max-width: none;
+		font-size: 11pt;
+		font-weight: 400;
+		line-height: 1.5;
+		color: #1f1f1f !important;
+	}
 
-  .grand-total-block::before { display: none; }
-  .grand-total-inner { grid-template-columns: 1fr auto; gap: 24pt; }
-  .grand-total-label { color: #ccc !important; font-family: monospace; font-size: 8pt; }
-  .grand-total-title { color: #fff !important; font-family: Georgia, serif; font-size: 14pt; }
-  .grand-total-note { color: #aaa !important; font-size: 9pt; }
+	.hero-pills {
+		margin-top: 12pt;
+		gap: 6pt;
+	}
 
-  .amount-label { color: #aaa !important; font-family: monospace; font-size: 8pt; }
-  .amount-value { color: #fff !important; font-family: monospace; font-size: 11pt; }
-  .amount-value.highlight { color: #fff !important; font-size: 22pt; }
-  .amount-row { border-bottom-color: rgba(255,255,255,0.15) !important; }
+	/* Píldoras y etiquetas → código en línea de Markdown */
+	.pill,
+	.pill.red,
+	.pill.gold,
+	.pill.cyan,
+	.checkpoint-tag,
+	.team-tag,
+	.phase-card-days,
+	.item-tag {
+		background: #fff !important;
+		color: #000 !important;
+		border: .75pt solid #000 !important;
+		border-radius: 0 !important;
+		font-family: var(--font-mono);
+		font-size: 7.5pt;
+		letter-spacing: .06em;
+		padding: 2pt 6pt;
+	}
 
-  /* Notes */
-  .note-box {
-	border-left: 3pt solid #000 !important;
-	background: #f5f5f5 !important;
-	color: #333 !important;
-	font-size: 9pt;
-	page-break-inside: avoid;
-  }
+	.hero-meta {
+		margin-top: 14pt;
+		gap: 14pt;
+	}
 
-  .note-box strong { color: #000 !important; }
+	.hero-meta-item {
+		min-width: 110px;
+		padding-top: 5pt;
+		border-top: .75pt solid #000 !important;
+	}
 
-  /* Terms */
-  .term-block { border-top: 2pt solid #000 !important; page-break-inside: avoid; }
-  .term-title { color: #000 !important; font-family: monospace; font-size: 8pt; }
-  .term-content { color: #333 !important; font-size: 9.5pt; }
-  .term-content strong { color: #000 !important; }
+	.hero-meta-label {
+		font-family: var(--font-mono);
+		font-size: 7pt;
+		letter-spacing: .16em;
+		color: #000 !important;
+	}
 
-  /* Dividers */
-  .page-break { border-top: 1pt dashed #ccc !important; margin: 20pt 0 16pt; }
+	.hero-meta-value,
+	.hero-meta-value a {
+		font-size: 9.5pt;
+		color: #000 !important;
+		text-decoration: none;
+	}
 
-  /* Signatures */
-  .signature-line { border-top: 1pt solid #000 !important; }
-  .signature-label { color: #333 !important; font-family: monospace; font-size: 8pt; }
+	/* ───────────────────────────────────────────────────────────
+	   ## 6 · CINTAS CONFIDENCIALES — bloque citado (`>`)
+	   ─────────────────────────────────────────────────────────── */
+	.confidential-strip,
+	.confidential-banner {
+		background: #fff !important;
+		color: #000 !important;
+		border: .75pt solid #000 !important;
+		border-radius: 0 !important;
+		font-family: var(--font-mono);
+		font-size: 7.5pt;
+		letter-spacing: .16em;
+		padding: 6pt;
+		margin: 14pt 0;
+		page-break-inside: avoid;
+	}
 
-  /* Footer */
-  .page > div:last-of-type { border-top: 1pt solid #ccc !important; }
+	/* ───────────────────────────────────────────────────────────
+	   ## 7 · SECCIONES — encabezados + separadores `---`
+	   ─────────────────────────────────────────────────────────── */
+	.section {
+		padding: 16pt 0 0 !important;
+		border-top: 1.5pt solid #000;
+		page-break-inside: auto;
+	}
 
-  /* Page breaks between modules */
-  .section-header { page-break-before: auto; }
-  .grand-total-block { page-break-before: always; }
+	.section-label {
+		font-family: var(--font-mono);
+		font-size: 7.5pt;
+		letter-spacing: .18em;
+		color: #000 !important;
+		margin-bottom: 4pt;
+	}
+
+	.section-title {
+		font-family: var(--font-prose);
+		font-weight: 700;
+		font-size: 15pt;
+		line-height: 1.15;
+		letter-spacing: -.01em;
+		color: #000 !important;
+		page-break-after: avoid;
+	}
+
+	.section-title span {
+		color: #000 !important;
+		font-style: italic;
+	}
+
+	.section-desc {
+		margin-top: 6pt;
+		font-size: 9.5pt;
+		line-height: 1.5;
+		color: #1f1f1f !important;
+	}
+
+	.divider {
+		height: .75pt !important;
+		background: #000 !important;
+		margin: 16pt 0 0 !important;
+	}
+
+	.page-break {
+		margin: 16pt 0 12pt;
+		border-top: .75pt dashed #000 !important;
+	}
+
+	/* ───────────────────────────────────────────────────────────
+	   ## 8 · TABLAS — tabla Markdown con bordes negros
+	   ─────────────────────────────────────────────────────────── */
+	.table-wrap {
+		background: #fff !important;
+		border: 0 !important;
+		border-radius: 0 !important;
+		overflow: visible !important;
+		margin-top: 12pt !important;
+	}
+
+	.budget-table {
+		min-width: 0 !important;
+		width: 100% !important;
+		border-collapse: collapse !important;
+		font-family: var(--font-prose);
+		font-size: 9.5pt;
+		page-break-inside: auto;
+	}
+
+	.budget-table thead { display: table-header-group; }
+
+	.budget-table th {
+		background: #fff !important;
+		color: #000 !important;
+		border: 0 !important;
+		border-bottom: 1.5pt solid #000 !important;
+		font-family: var(--font-mono);
+		font-size: 7.5pt;
+		font-weight: 500;
+		letter-spacing: .1em;
+		text-transform: uppercase;
+		text-align: left;
+		padding: 5pt 6pt;
+	}
+
+	.budget-table td {
+		background: #fff !important;
+		color: #000 !important;
+		border: 0 !important;
+		border-bottom: .75pt solid #000 !important;
+		padding: 6pt;
+		vertical-align: top;
+	}
+
+	.budget-table tr:last-child td { border-bottom: 0 !important; }
+
+	.budget-table tbody tr,
+	.budget-table tbody tr:hover {
+		background: #fff !important;
+		page-break-inside: avoid;
+	}
+
+	.budget-table .col-1 { width: auto !important; }
+	.budget-table .col-2 { width: 14% !important; }
+	.budget-table .col-3,
+	.budget-table .col-4,
+	.budget-table .col-5 { width: 11% !important; }
+
+	.budget-table .table-title {
+		font-family: var(--font-prose);
+		font-weight: 700;
+		font-size: 10.5pt;
+		text-transform: none;
+		margin: 0 0 2pt;
+		color: #000 !important;
+	}
+
+	.budget-table .table-title small { color: #000 !important; }
+
+	.budget-table .table-desc {
+		margin-top: 3pt;
+		font-size: 9pt;
+		font-weight: 400;
+		line-height: 1.45;
+		color: #1f1f1f !important;
+	}
+
+	/* Cifras alineadas a la derecha y en monoespaciado */
+	.budget-table td:not(:first-child) {
+		font-family: var(--font-mono);
+		font-size: 9pt;
+		text-align: right;
+		vertical-align: middle;
+	}
+
+	.col-qty,
+	.col-unit,
+	.col-price,
+	.col-total {
+		font-family: var(--font-mono);
+		font-size: 9pt;
+		color: #000 !important;
+	}
+
+	.item-name {
+		font-size: 10pt;
+		font-weight: 700;
+		color: #000 !important;
+	}
+
+	.item-desc {
+		font-size: 9pt;
+		color: #1f1f1f !important;
+	}
+
+	.subtotal-row td {
+		background: #fff !important;
+		border-bottom: 0 !important;
+		border-top: 1.5pt solid #000 !important;
+		padding: 7pt 6pt;
+		font-weight: 700;
+	}
+
+	.subtotal-amount {
+		font-family: var(--font-mono);
+		font-size: 10pt;
+		color: #000 !important;
+	}
+
+	/* ───────────────────────────────────────────────────────────
+	   ## 9 · TOTALES — bloque delimitado por reglas
+	   ─────────────────────────────────────────────────────────── */
+	.grand-total-block {
+		background: #fff !important;
+		border: 0 !important;
+		border-top: 1.5pt solid #000 !important;
+		border-bottom: 1.5pt solid #000 !important;
+		border-radius: 0 !important;
+		padding: 14pt 0 !important;
+		margin-top: 20pt !important;
+		overflow: visible !important;
+		page-break-inside: avoid;
+	}
+
+	.grand-total-inner {
+		grid-template-columns: 1fr auto;
+		gap: 24pt;
+		align-items: end;
+	}
+
+	.grand-total-label {
+		font-family: var(--font-mono);
+		font-size: 7.5pt;
+		letter-spacing: .16em;
+		color: #000 !important;
+		margin-bottom: 4pt;
+	}
+
+	.grand-total-title {
+		font-family: var(--font-prose);
+		font-size: 14pt;
+		font-weight: 700;
+		color: #000 !important;
+	}
+
+	.grand-total-note {
+		font-size: 8.5pt;
+		line-height: 1.4;
+		color: #1f1f1f !important;
+	}
+
+	.grand-total-amounts { text-align: right; }
+
+	.amount-row {
+		margin-bottom: 4pt;
+		padding-bottom: 4pt;
+		border-bottom: .75pt solid #000 !important;
+	}
+
+	.amount-row:last-child { border-bottom: 0 !important; }
+
+	.amount-label {
+		font-family: var(--font-mono);
+		font-size: 7.5pt;
+		letter-spacing: .1em;
+		color: #000 !important;
+	}
+
+	.amount-value {
+		font-family: var(--font-mono);
+		font-size: 10pt;
+		font-weight: 700;
+		color: #000 !important;
+	}
+
+	.amount-value small,
+	.amount-value sup { opacity: 1 !important; }
+
+	.amount-value.highlight {
+		font-size: 16pt;
+		color: #000 !important;
+	}
+
+	.amount-sub,
+	.amount-igv {
+		font-family: var(--font-mono);
+		font-size: 7.5pt;
+		letter-spacing: .1em;
+		color: #000 !important;
+	}
+
+	.amount-total-line {
+		font-family: var(--font-mono);
+		font-size: 8.5pt;
+		color: #000 !important;
+		border-top: .75pt solid #000 !important;
+	}
+
+	.amount-total-line strong { color: #000 !important; }
+
+	.investment-block {
+		background: #fff !important;
+		border: 0 !important;
+		border-top: 1.5pt solid #000 !important;
+		border-bottom: 1.5pt solid #000 !important;
+		border-radius: 0 !important;
+		padding: 16pt 0 !important;
+		grid-template-columns: 1fr auto;
+		gap: 24pt;
+		overflow: visible !important;
+		page-break-inside: avoid;
+	}
+
+	.investment-label {
+		font-family: var(--font-mono);
+		font-size: 7.5pt;
+		letter-spacing: .16em;
+		color: #000 !important;
+	}
+
+	.investment-title {
+		font-family: var(--font-prose);
+		font-size: 14pt;
+		font-weight: 700;
+		color: #000 !important;
+	}
+
+	.investment-desc {
+		font-size: 9.5pt;
+		line-height: 1.5;
+		color: #1f1f1f !important;
+	}
+
+	.investment-amount { text-align: right; }
+
+	/* ───────────────────────────────────────────────────────────
+	   ## 10 · NOTAS — cita Markdown (`>`)
+	   ─────────────────────────────────────────────────────────── */
+	.note-wrap { margin-top: 12pt; }
+
+	.note-box {
+		background: #fff !important;
+		color: #000 !important;
+		border: 0 !important;
+		border-left: 2pt solid #000 !important;
+		border-radius: 0 !important;
+		padding: 6pt 0 6pt 10pt;
+		margin-bottom: 6pt;
+		font-size: 9pt;
+		page-break-inside: avoid;
+	}
+
+	.note-box strong {
+		color: #000 !important;
+		font-weight: 700;
+	}
+
+	/* ───────────────────────────────────────────────────────────
+	   ## 11 · FASES, ENTREGABLES Y CONDICIONES — listas
+	   ─────────────────────────────────────────────────────────── */
+	.phases-grid {
+		grid-template-columns: repeat(2, 1fr) !important;
+		gap: 10pt !important;
+		margin-top: 12pt !important;
+	}
+
+	.phase-card {
+		background: #fff !important;
+		border: .75pt solid #000 !important;
+		border-radius: 0 !important;
+		padding: 10pt !important;
+		overflow: visible !important;
+		page-break-inside: avoid;
+	}
+
+	.phase-card-num {
+		font-family: var(--font-mono);
+		font-size: 7.5pt;
+		letter-spacing: .16em;
+		color: #000 !important;
+		margin-bottom: 4pt;
+	}
+
+	.phase-card-title {
+		font-family: var(--font-prose);
+		font-size: 11pt;
+		font-weight: 700;
+		color: #000 !important;
+		margin-bottom: 5pt;
+	}
+
+	.phase-card-subtitle {
+		font-family: var(--font-mono);
+		font-size: 8pt;
+		color: #000 !important;
+	}
+
+	.phase-card-days { margin-bottom: 8pt; }
+
+	.phase-tasks li {
+		font-size: 8.5pt;
+		line-height: 1.4;
+		color: #1f1f1f !important;
+		border-bottom: 0 !important;
+		padding: 2pt 0;
+		gap: 5pt;
+	}
+
+	.phase-tasks li::before {
+		content: '-';
+		color: #000 !important;
+		font-family: var(--font-mono);
+		opacity: 1 !important;
+	}
+
+	.deliverables-grid {
+		grid-template-columns: repeat(2, 1fr) !important;
+		gap: 10pt !important;
+		margin-top: 12pt !important;
+	}
+
+	.deliverable-card {
+		background: #fff !important;
+		border: .75pt solid #000 !important;
+		border-radius: 0 !important;
+		padding: 10pt !important;
+		gap: 10pt;
+		page-break-inside: avoid;
+	}
+
+	.deliverable-icon {
+		width: 28px;
+		height: 28px;
+		background: #fff !important;
+		border: .75pt solid #000 !important;
+		border-radius: 0 !important;
+		font-size: 13px;
+	}
+
+	.deliverable-name {
+		font-family: var(--font-prose);
+		font-size: 10.5pt;
+		font-weight: 700;
+		color: #000 !important;
+	}
+
+	.deliverable-detail {
+		font-size: 9pt;
+		color: #1f1f1f !important;
+	}
+
+	.deliverable-status {
+		font-family: var(--font-mono);
+		font-size: 7.5pt;
+		letter-spacing: .1em;
+		color: #000 !important;
+	}
+
+	.status-pending,
+	.status-progress,
+	.status-done { color: #000 !important; }
+
+	.kpi-grid,
+	.conditions-grid {
+		grid-template-columns: repeat(2, 1fr) !important;
+		gap: 0 !important;
+		background: #fff !important;
+		border: .75pt solid #000 !important;
+		border-radius: 0 !important;
+	}
+
+	.kpi-card,
+	.condition-card,
+	.team-card {
+		background: #fff !important;
+		border: 0 !important;
+		border-bottom: .75pt solid #000 !important;
+		border-radius: 0 !important;
+		padding: 10pt;
+		page-break-inside: avoid;
+	}
+
+	.team-grid { grid-template-columns: 1fr !important; }
+
+	.kpi-value {
+		font-family: var(--font-mono);
+		font-size: 18pt;
+		color: #000 !important;
+	}
+
+	.kpi-value span,
+	.kpi-accent,
+	.condition-highlight { color: #000 !important; }
+
+	.kpi-label {
+		font-family: var(--font-mono);
+		font-size: 7.5pt;
+		letter-spacing: .14em;
+		color: #000 !important;
+	}
+
+	.avatar {
+		background: #fff !important;
+		border: .75pt solid #000 !important;
+		color: #000 !important;
+	}
+
+	.condition-title,
+	.team-info-name {
+		font-family: var(--font-prose);
+		font-size: 11pt;
+		font-weight: 700;
+		color: #000 !important;
+	}
+
+	.condition-text,
+	.team-info-role {
+		font-size: 9pt;
+		color: #1f1f1f !important;
+	}
+
+	/* ───────────────────────────────────────────────────────────
+	   ## 12 · CRONOGRAMA — matriz con barras huecas
+	   ─────────────────────────────────────────────────────────── */
+	.gantt-wrap {
+		background: #fff !important;
+		border: 0 !important;
+		border-radius: 0 !important;
+		overflow: visible !important;
+		margin-top: 12pt !important;
+	}
+
+	.gantt-header {
+		display: grid !important;
+		border-bottom: 1.5pt solid #000 !important;
+	}
+
+	.gantt-header-label,
+	.gantt-day {
+		border-right: 0 !important;
+		padding: 5pt;
+		font-family: var(--font-mono);
+		font-size: 7pt;
+		letter-spacing: .08em;
+		color: #000 !important;
+	}
+
+	.gantt-row {
+		border-bottom: .75pt solid #000 !important;
+		page-break-inside: avoid;
+	}
+
+	.gantt-phase-info {
+		padding: 6pt;
+		border-right: .75pt solid #000 !important;
+	}
+
+	.gantt-cell {
+		padding: 6pt 3pt;
+		border-right: .75pt solid #000 !important;
+		/* La versión móvil oculta celdas y encabezado: en papel el
+		   cronograma siempre se imprime completo. */
+		display: block !important;
+	}
+
+	.grid-4-cols  { grid-template-columns: 46mm repeat(4, 1fr) !important; }
+	.grid-10-cols { grid-template-columns: 40mm repeat(10, 1fr) !important; }
+
+	.phase-number {
+		font-family: var(--font-mono);
+		font-size: 6.5pt;
+		letter-spacing: .14em;
+		color: #000 !important;
+	}
+
+	.phase-name {
+		font-family: var(--font-prose);
+		font-size: 9.5pt;
+		font-weight: 700;
+		color: #000 !important;
+	}
+
+	/* Las barras de fase se imprimen como celdas blancas con
+	   borde negro: el calendario sigue legible sin color. */
+	.gantt-bar {
+		width: 100% !important;
+		height: 14px;
+		background: #fff !important;
+		border: .75pt solid #000;
+		border-radius: 0 !important;
+		animation: none !important;
+	}
+
+	.phase-legend {
+		margin-top: 8pt;
+		gap: 8pt;
+	}
+
+	.legend-item {
+		font-family: var(--font-mono);
+		font-size: 7.5pt;
+		color: #000 !important;
+	}
+
+	.legend-dot {
+		width: 7px;
+		height: 7px;
+		background: #fff !important;
+		border: .75pt solid #000;
+		border-radius: 0 !important;
+	}
+
+	/* ───────────────────────────────────────────────────────────
+	   ## 13 · HITOS — lista vertical con línea de regla
+	   ─────────────────────────────────────────────────────────── */
+	.milestones { margin-top: 12pt !important; }
+
+	.milestones-line {
+		background: #000 !important;
+		opacity: 1 !important;
+		left: 9px;
+	}
+
+	.milestone-item {
+		gap: 10pt;
+		padding-bottom: 10pt;
+		page-break-inside: avoid;
+	}
+
+	.milestone-dot-wrap {
+		width: 18px;
+		padding-top: 3pt;
+	}
+
+	.milestone-dot {
+		width: 9px;
+		height: 9px;
+		background: #fff !important;
+		border: .75pt solid #000 !important;
+	}
+
+	.milestone-dot::after { background: #fff !important; }
+
+	.milestone-body {
+		background: #fff !important;
+		border: .75pt solid #000 !important;
+		border-radius: 0 !important;
+		padding: 8pt 10pt;
+	}
+
+	.milestone-day {
+		font-family: var(--font-mono);
+		font-size: 7pt;
+		letter-spacing: .14em;
+		color: #000 !important;
+	}
+
+	.milestone-title {
+		font-family: var(--font-prose);
+		font-size: 11pt;
+		font-weight: 700;
+		color: #000 !important;
+	}
+
+	.milestone-desc {
+		margin-top: 3pt;
+		font-size: 9pt;
+		line-height: 1.45;
+		color: #1f1f1f !important;
+	}
+
+	/* ───────────────────────────────────────────────────────────
+	   ## 14 · CONDICIONES, FIRMAS Y PIE
+	   ─────────────────────────────────────────────────────────── */
+	.term-block {
+		border-top: 1.5pt solid #000 !important;
+		padding-top: 8pt;
+		page-break-inside: avoid;
+	}
+
+	.term-title {
+		font-family: var(--font-mono);
+		font-size: 8pt;
+		letter-spacing: .14em;
+		color: #000 !important;
+	}
+
+	.term-content {
+		font-size: 9.5pt;
+		line-height: 1.5;
+		color: #1f1f1f !important;
+	}
+
+	.term-content strong { color: #000 !important; }
+
+	.signature-line {
+		border-top: .75pt solid #000 !important;
+		margin-top: 20pt;
+	}
+
+	.signature-label {
+		font-family: var(--font-mono);
+		font-size: 7.5pt;
+		letter-spacing: .1em;
+		color: #000 !important;
+	}
+
+	.footer {
+		margin-top: 24pt !important;
+		padding: 10pt 0 0 !important;
+		border-top: 1.5pt solid #000 !important;
+		gap: 10pt;
+		page-break-inside: avoid;
+	}
+
+	.footer-brand-mark { width: 16px; height: 16px; }
+
+	.footer-center,
+	.footer-right,
+	.footer-right a {
+		font-family: var(--font-mono);
+		font-size: 7.5pt;
+		letter-spacing: .08em;
+		color: #000 !important;
+		text-decoration: none;
+	}
+
+	.footer-center { text-align: center; }
+	.footer-right { text-align: right; }
+
+	/* ───────────────────────────────────────────────────────────
+	   ## 15 · PORTADA CLÁSICA (marcas heredadas)
+	   ─────────────────────────────────────────────────────────── */
+	.cover {
+		background: #fff !important;
+		min-height: auto;
+		padding: 0 0 24pt;
+		border-bottom: 1.5pt solid #000;
+		page-break-after: always;
+	}
+
+	.cover-logo {
+		margin-bottom: 24pt;
+		padding-bottom: 8pt;
+		border-bottom: .75pt solid #000;
+		font-family: var(--font-mono);
+		font-size: 10pt;
+		color: #000 !important;
+	}
+
+	.cover-eyebrow {
+		font-family: var(--font-mono);
+		font-size: 8pt;
+		letter-spacing: .18em;
+		color: #000 !important;
+	}
+
+	.cover-title {
+		font-family: var(--font-prose);
+		font-weight: 700;
+		font-size: 28pt;
+		line-height: 1.1;
+		color: #000 !important;
+	}
+
+	.cover-title em { color: #000 !important; }
+
+	.cover-subtitle {
+		font-family: var(--font-prose);
+		font-size: 15pt;
+		color: #1f1f1f !important;
+	}
+
+	.cover-meta { gap: 14pt; }
+
+	.cover-meta-item {
+		padding-top: 5pt;
+		border-top: .75pt solid #000 !important;
+	}
+
+	.cover-meta-label {
+		font-family: var(--font-mono);
+		font-size: 7.5pt;
+		letter-spacing: .14em;
+		color: #000 !important;
+	}
+
+	.cover-meta-value {
+		font-size: 10.5pt;
+		color: #000 !important;
+	}
+
+	.cover-footer {
+		border-top: .75pt solid #000 !important;
+		padding-top: 6pt;
+	}
+
+	.cover-footer-left,
+	.cover-footer-right {
+		font-family: var(--font-mono);
+		font-size: 7.5pt;
+		color: #000 !important;
+	}
+
+	.section-num,
+	.section-tag,
+	.breakdown-num,
+	.breakdown-label,
+	.breakdown-amount {
+		color: #000 !important;
+	}
+
+	.section-num {
+		font-family: var(--font-mono);
+		font-size: 10pt;
+		letter-spacing: .14em;
+	}
+
+	.section-tag,
+	.breakdown-label {
+		font-family: var(--font-mono);
+		font-size: 7.5pt;
+		letter-spacing: .12em;
+	}
+
+	.breakdown-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 0;
+		background: #fff !important;
+		border: .75pt solid #000 !important;
+	}
+
+	.breakdown-card {
+		background: #fff !important;
+		border: 0 !important;
+		border-right: .75pt solid #000 !important;
+		padding: 10pt;
+	}
+
+	.breakdown-num {
+		font-family: var(--font-mono);
+		font-size: 16pt;
+	}
+
+	.breakdown-amount {
+		font-family: var(--font-mono);
+		font-size: 9.5pt;
+	}
 }
