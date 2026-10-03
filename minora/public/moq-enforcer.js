@@ -1,14 +1,125 @@
 /**
  * MOQ Pako
- *
  */
 
 (function () {
   "use strict";
 
-  const MOQ_APP_URL = "https://agencyarteria.com/minora";
-  const MOQ_TAG_PATTERN = /^min(\d+)$/i;
+  const APP_PROXY_CONFIG_PATH = "/apps/minora/api/moq-config";
+  const CONFIG_TIMEOUT_MS = 2000;
   const VALIDATION_DEBOUNCE_MS = 300;
+  const BLOCKED_MARKER = "data-moq-blocked";
+  const BANNER_ATTR = "data-moq-warning-handle";
+  const BANNER_SELECTOR = `[${BANNER_ATTR}]`;
+
+  const DEFAULT_CONFIG = {
+    enabled: true,
+    tagPattern: "^min(\\d+)$",
+    selectors: {
+      cartForm:
+        'form[action="/cart"], [data-cart-form], .cart-items, .cart-drawer, [data-cart-drawer], .cart-drawer__content, .cart-drawer__wrapper, .mini-cart, [data-mini-cart], .cart-popup, #cart-drawer, [data-drawer="cart"], .cart__container, .cart__contents, .drawer__content',
+      // Contenedor(es) donde se inserta el banner. Vacio = heuristico legacy
+      // (primer contenedor visible de `cartForm`). Si una tienda define esta
+      // lista, el banner va a TODOS los elementos que coincidan, lo que permite
+      // mostrarlo a la vez en el drawer y en la pagina /cart.
+      warningBanner: "",
+      checkoutButton:
+        'button[name="checkout"], a[href="/checkout"], [data-checkout-button]',
+      // OJO: no usar `a[href="/cart"]` aqui. En la mayoria de temas ese es el
+      // icono del header que ABRE el drawer; bloquearlo deja el carrito
+      // inaccesible. El boton "Ver carrito" se detecta por texto, mas abajo.
+      cartViewButton: ".cart-view-button, [data-view-cart], .cart__view-button",
+    },
+    messages: {
+      title: "Minimum quantity required",
+      description:
+        "To continue, you must meet the minimum quantity requirement for this product.",
+      blockedActionTitle:
+        "No puedes proceder porque algunos productos no cumplen la cantidad minima.",
+    },
+  };
+
+  let config = DEFAULT_CONFIG;
+  let configPromise = null;
+  /** Firma del estado ya pintado: evita reescribir el DOM si nada cambio. */
+  let renderedStateKey = null;
+  /** true mientras el propio script muta el DOM (ver withSelfMutations). */
+  let ignoreMutations = false;
+
+  /**
+   * Merge superficial defensivo: solo acepta claves del shape conocido y con el
+   * tipo esperado, para que un JSON mal editado no rompa el storefront.
+   */
+  function mergeConfig(raw) {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw))
+      return DEFAULT_CONFIG;
+
+    const merged = {
+      ...DEFAULT_CONFIG,
+      enabled:
+        typeof raw.enabled === "boolean" ? raw.enabled : DEFAULT_CONFIG.enabled,
+      selectors: { ...DEFAULT_CONFIG.selectors },
+      messages: { ...DEFAULT_CONFIG.messages },
+    };
+
+    if (typeof raw.tagPattern === "string") {
+      try {
+        new RegExp(raw.tagPattern);
+        merged.tagPattern = raw.tagPattern;
+      } catch {
+        /* patron invalido: se conserva el default */
+      }
+    }
+
+    for (const key of Object.keys(DEFAULT_CONFIG.selectors)) {
+      if (typeof raw.selectors?.[key] === "string") {
+        merged.selectors[key] = raw.selectors[key];
+      }
+    }
+
+    for (const key of Object.keys(DEFAULT_CONFIG.messages)) {
+      if (typeof raw.messages?.[key] === "string") {
+        merged.messages[key] = raw.messages[key];
+      }
+    }
+
+    return merged;
+  }
+
+  /**
+   * Descarga la config de la tienda una sola vez y la cachea. Si falla
+   * (app no instalada, timeout, offline) el storefront queda con los defaults.
+   */
+  function loadConfig() {
+    if (configPromise) return configPromise;
+
+    configPromise = (async () => {
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), CONFIG_TIMEOUT_MS);
+
+        const response = await fetch(APP_PROXY_CONFIG_PATH, {
+          signal: controller.signal,
+          headers: { Accept: "application/json" },
+        });
+
+        clearTimeout(timer);
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        config = mergeConfig(await response.json());
+      } catch (error) {
+        console.warn(
+          "[moq] config por tienda no disponible, usando defaults:",
+          error,
+        );
+        config = DEFAULT_CONFIG;
+      }
+
+      return config;
+    })();
+
+    return configPromise;
+  }
 
   /**
    * Extrae el MOQ de los tags de un producto
@@ -16,7 +127,9 @@
   function extractMoqFromTags(tags) {
     let maxMoq = 0;
     for (const tag of tags) {
-      const match = tag.trim().match(MOQ_TAG_PATTERN);
+      const match = String(tag)
+        .trim()
+        .match(new RegExp(config.tagPattern, "i"));
       if (match) {
         const val = parseInt(match[1], 10);
         if (val > maxMoq) maxMoq = val;
@@ -38,22 +151,105 @@
       .map((t) => t.trim());
   }
 
-  /**
-   * Agrega un banner de advertencia al carrito.
-   * Devuelve true si el banner cambió (se insertó/actualizó), false si no
-   * hizo falta tocar el DOM — así evitamos mutaciones innecesarias que
-   * retriggerean el MutationObserver.
-   */
-  function showMoqWarning(productTitles, required, current) {
-    const existing = document.querySelector("[data-moq-warning-handle]");
-
-    if (existing) {
-      existing.remove();
+  function queryAll(selector) {
+    if (!selector) return [];
+    try {
+      return Array.from(document.querySelectorAll(selector));
+    } catch (e) {
+      console.warn("[moq] selector invalido:", selector, e);
+      return [];
     }
+  }
 
+  /**
+   * Busca posibles contenedores del carrito (página y preview/drawer)
+   */
+  function findCartContainers() {
+    const found = queryAll(config.selectors.cartForm);
+    return Array.from(new Set(found));
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function isVisible(el) {
+    if (typeof el.getClientRects === "function") {
+      return el.getClientRects().length > 0;
+    }
+    return el.offsetParent !== null;
+  }
+
+  /**
+   * Contenedores donde debe caer el banner.
+   *
+   * - Con `selectors.warningBanner` definido por la tienda: exactamente los
+   *   elementos que coincidan. Es la via para fijar donde va el banner sin
+   *   depender del orden del DOM.
+   * - Sin ese selector: heuristico legacy, el primer contenedor visible de
+   *   `cartForm` (o el primero que exista).
+   */
+  function findBannerTargets() {
+    const bannerSelector = config.selectors.warningBanner;
+    if (bannerSelector) return queryAll(bannerSelector);
+
+    const containers = findCartContainers();
+    const target = containers.find(isVisible) || containers[0];
+    return target ? [target] : [];
+  }
+
+  /**
+   * Ejecuta escrituras del propio script sin que el MutationObserver las vea.
+   * Sin esto, insertar/remover el banner dispara el observer, que dispara otra
+   * validacion, que vuelve a escribir... y el banner parpadea en bucle
+   * indefinido (con el fetch de /cart.js en cada vuelta).
+   */
+  function withSelfMutations(fn) {
+    ignoreMutations = true;
+    try {
+      fn();
+    } finally {
+      // El observer se entrega en un microtask encolado ANTES que este, asi
+      // que cuando se ejecuta todavia ve ignoreMutations === true.
+      queueMicrotask(() => {
+        ignoreMutations = false;
+      });
+    }
+  }
+
+  function isBannerOnlyMutation(record) {
+    const nodes = Array.from(record.addedNodes).concat(
+      Array.from(record.removedNodes),
+    );
+    if (nodes.length === 0) return false;
+    return nodes.every(
+      (node) => node.nodeType === 1 && node.hasAttribute(BANNER_ATTR),
+    );
+  }
+
+  function removeMoqBanners() {
+    document.querySelectorAll(BANNER_SELECTOR).forEach((el) => el.remove());
+  }
+
+  function clearMoqWarnings() {
+    withSelfMutations(() => {
+      renderedStateKey = null;
+      removeMoqBanners();
+    });
+  }
+
+  /**
+   * Pinta un banner (sin insertarlo todavia) para un producto que incumple.
+   */
+  function buildMoqBanner(productTitles, required, current) {
     const banner = document.createElement("div");
 
-    banner.setAttribute("data-moq-warning-handle", "true");
+    banner.setAttribute(BANNER_ATTR, "true");
 
     banner.style.cssText = `
     width: 100%;
@@ -80,25 +276,21 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   `;
 
-    function escapeHtml(str) {
-      return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
-    const titlesHtml = Array.isArray(productTitles)
+    const titles = Array.isArray(productTitles)
       ? productTitles
-          .map(
-            (t) =>
-              `<div style="font-size: 13px;line-height: 18px;font-weight: 600;color: #3f3100;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;" title="${escapeHtml(t)}">${escapeHtml(t)}</div>`,
-          )
-          .join("")
-      : `<div style="font-size: 13px;line-height: 18px;font-weight: 600;color: #3f3100;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;" title="${escapeHtml(String(productTitles))}">${escapeHtml(String(productTitles))}</div>`;
+      : [productTitles];
+    const titlesHtml = titles
+      .map(
+        (t) =>
+          `<div style="font-size: 13px;line-height: 18px;font-weight: 600;color: #3f3100;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;" title="${escapeHtml(t)}">${escapeHtml(t)}</div>`,
+      )
+      .join("");
 
     const remaining = Math.max(required - current, 0);
+    const description = config.messages.description;
+    const extraNote = description.includes("You can combine")
+      ? " You can combine different colors/variants to reach the minimum."
+      : "";
 
     banner.innerHTML = `
     <!-- Header -->
@@ -115,10 +307,10 @@
       <!-- Message -->
       <div style="flex: 1; min-width: 0;">
         <div style="font-size: 14px;line-height: 20px;font-weight: 700;color: #5c4500;margin-bottom: 3px;">
-          Minimum quantity required
+          ${escapeHtml(config.messages.title)}
         </div>
         <div style="font-size: 13px;line-height: 18px;color: #725900;">
-          To continue, you must meet the minimum quantity requirement for this product. You can combine different colors/variants to reach the minimum.
+          ${escapeHtml(description + extraNote)}
         </div>
       </div>
     </div>
@@ -130,8 +322,7 @@
       <div style="min-width: 0;flex: 1;">
         ${titlesHtml}
         <div style="margin-top: 2px;font-size: 12px;line-height: 17px;color: #7a650f;">
-          Minimum required:
-          <strong>${required} units</strong>
+          ${escapeHtml(config.messages.title)}: <strong>${required}</strong>
         </div>
       </div>
 
@@ -143,49 +334,151 @@
 
     <!-- Remaining -->
     <div style="margin-top: 9px; font-size: 12px; line-height: 16px; color: #806a16;">
-      You are <strong style="color: #6b4d00;">${remaining} ${remaining === 1 ? "unit" : "units"}</strong> away from the minimum.
+      Faltan <strong style="color: #6b4d00;">${remaining} ${remaining === 1 ? "unidad" : "unidades"}</strong> para alcanzar el minimo.
     </div>
   `;
 
-    // Find cart container
-    const cartForm =
-      document.querySelector('form[action="/cart"]') ||
-      document.querySelector("[data-cart-form]") ||
-      document.querySelector(".cart-items");
-
-    // Insert warning at the beginning of cart
-    if (cartForm) {
-      cartForm.prepend(banner);
-    }
+    return banner;
   }
 
   /**
-   * Bloquea el botón de checkout si hay errores MOQ
+   * Inserta un banner por cada producto que incumple el MOQ, en cada
+   * contenedor configurado.
+   *
+   * Es idempotente a proposito: si el estado (productos, minimo, cantidad) es
+   * el mismo que ya esta pintado y los banners siguen en su sitio, no se toca
+   * el DOM. Sin esta guarda, quitar+volver a pintar el banner en cada
+   * validacion se realimenta via MutationObserver y el banner parpadea para
+   * siempre (y arrastra un fetch de /cart.js por vuelta).
    */
-  function disableCheckout() {
-    const checkoutBtn = document.querySelector(
-      'button[name="checkout"], a[href="/checkout"], [data-checkout-button], button[class="cart-view-button"]',
+  function renderMoqWarnings(errors) {
+    const stateKey = JSON.stringify([config.messages, errors]);
+    const containers = findBannerTargets();
+    const targets = containers.length ? containers : [document.body];
+
+    const expected = errors.length * targets.length;
+    const placed = document.querySelectorAll(BANNER_SELECTOR).length;
+    const allInPlace = targets.every(
+      (el) => !el.querySelector(BANNER_SELECTOR),
     );
-    if (checkoutBtn) {
-      checkoutBtn.style.opacity = "0.5";
-      checkoutBtn.style.pointerEvents = "none";
-      checkoutBtn.title =
-        "No puedes proceder al checkout porque algunos productos no cumplen la cantidad mínima.";
+
+    if (stateKey === renderedStateKey && placed === expected && allInPlace) {
+      return;
     }
+
+    const banners = errors.map((error) =>
+      buildMoqBanner(error.titles, error.required, error.current),
+    );
+
+    withSelfMutations(() => {
+      renderedStateKey = stateKey;
+      removeMoqBanners();
+      for (const target of targets) {
+        for (const banner of banners) target.prepend(banner.cloneNode(true));
+      }
+    });
   }
 
   /**
-   * Habilita el botón de checkout
+   * Ultimo recurso para el boton "Ver carrito": muchos themes lo renderizan
+   * con clases propias y sin data-attributes, asi que lo detectamos por texto
+   * o aria-label.
+   *
+   * "carrito"/"carro" no contienen "cart", asi que el stem es /car(t|r)/ y no
+   * \bcart\b. French usa "panier". Se evalua SOLO dentro de los contenedores de
+   * carrito, para no capturar por error el toggle del header ("Carrito") que
+   * abre el drawer — ese debe seguir funcionando.
    */
-  function enableCheckout() {
-    const checkoutBtn = document.querySelector(
-      'button[name="checkout"], a[href="/checkout"], [data-checkout-button]',
-    );
-    if (checkoutBtn) {
-      checkoutBtn.style.opacity = "1";
-      checkoutBtn.style.pointerEvents = "auto";
-      checkoutBtn.title = "";
-    }
+  const CART_WORD_RE = /\bcar(?:t|r)|\bpanier/i;
+  const ACTION_WORD_RE = /\b(view|ver|voir|ver|mostrar|go|ir|see)\b/i;
+
+  function findViewCartButtonsByText() {
+    const found = [];
+
+    findCartContainers().forEach((container) => {
+      container.querySelectorAll("a, button").forEach((el) => {
+        if (el.hasAttribute(BLOCKED_MARKER)) return;
+        // Skip togglers: dentro de un drawer suelen ser pestanas/filtros, no el
+        // enlace al carrito.
+        if (
+          el.hasAttribute("aria-controls") ||
+          el.hasAttribute("aria-expanded")
+        )
+          return;
+
+        const label = `${el.textContent || ""} ${
+          el.getAttribute("aria-label") || ""
+        }`.trim();
+
+        if (ACTION_WORD_RE.test(label) && CART_WORD_RE.test(label)) {
+          found.push(el);
+        }
+      });
+    });
+
+    return found;
+  }
+
+  /**
+   * Devuelve todos los botones de accion del carrito (Checkout y Ver carrito),
+   * combinando los selectores de la config con la deteccion por texto.
+   */
+  function collectActionButtons() {
+    const buttons = [
+      ...queryAll(config.selectors.checkoutButton),
+      ...queryAll(config.selectors.cartViewButton),
+      ...findViewCartButtonsByText(),
+    ];
+    return Array.from(new Set(buttons));
+  }
+
+  /**
+   * Deshabilita todos los botones de accion del carrito (Checkout y
+   * View Cart) cuando hay errores MOQ. Marca cada elemento con
+   * data-moq-blocked para poder restaurar exactamente lo que toco este
+   * script, sin pisar el estilo propio del theme.
+   */
+  function disableActionButtons() {
+    collectActionButtons().forEach((el) => {
+      if (el.hasAttribute(BLOCKED_MARKER)) return;
+      el.setAttribute(BLOCKED_MARKER, "true");
+      el.dataset.moqPrevOpacity = el.style.opacity || "";
+      el.dataset.moqPrevPointerEvents = el.style.pointerEvents || "";
+      el.style.opacity = "0.5";
+      el.style.pointerEvents = "none";
+      el.setAttribute("title", config.messages.blockedActionTitle);
+      el.setAttribute("aria-disabled", "true");
+      if (el.tagName === "BUTTON") {
+        el.dataset.moqPrevDisabled = el.disabled ? "1" : "";
+        el.disabled = true;
+      }
+    });
+  }
+
+  /**
+   * Habilita todos los botones de accion del carrito (Checkout y View Cart)
+   */
+  function enableActionButtons() {
+    document.querySelectorAll(`[${BLOCKED_MARKER}]`).forEach((el) => {
+      el.removeAttribute(BLOCKED_MARKER);
+
+      if (el.dataset.moqPrevOpacity)
+        el.style.opacity = el.dataset.moqPrevOpacity;
+      else el.style.removeProperty("opacity");
+
+      if (el.dataset.moqPrevPointerEvents)
+        el.style.pointerEvents = el.dataset.moqPrevPointerEvents;
+      else el.style.removeProperty("pointer-events");
+
+      el.removeAttribute("title");
+      el.removeAttribute("aria-disabled");
+      if (el.tagName === "BUTTON")
+        el.disabled = el.dataset.moqPrevDisabled === "1";
+
+      delete el.dataset.moqPrevOpacity;
+      delete el.dataset.moqPrevPointerEvents;
+      delete el.dataset.moqPrevDisabled;
+    });
   }
 
   /**
@@ -207,7 +500,7 @@
       }
     } catch (selectorError) {
       console.warn(
-        "MOQ: no se pudo ajustar el input de cantidad",
+        "[moq] no se pudo ajustar el input de cantidad",
         selectorError,
       );
     }
@@ -224,10 +517,8 @@
 
       const cart = await cartResponse.json();
       if (!cart.items || cart.items.length === 0) {
-        enableCheckout();
-        document
-          .querySelectorAll("[data-moq-warning-handle]")
-          .forEach((el) => el.remove());
+        enableActionButtons();
+        clearMoqWarnings();
         return;
       }
 
@@ -253,13 +544,6 @@
         }
       }
 
-      let hasError = false;
-
-      // Remove old warnings antes de recalcular
-      document
-        .querySelectorAll("[data-moq-warning-handle]")
-        .forEach((el) => el.remove());
-
       // Agrupar líneas del carrito por producto (product_id). Variantes de un
       // mismo producto comparten product_id (ej. mismo producto en distintos
       // colores), de modo que sus cantidades se suman para cumplir el MOQ.
@@ -282,21 +566,32 @@
         group.keys.push(item.key);
       }
 
+      const errors = [];
       for (const handle of Object.keys(productGroups)) {
         const group = productGroups[handle];
         if (group.moq !== null && group.totalQuantity < group.moq) {
-          hasError = true;
-          showMoqWarning(group.titles, group.moq, group.totalQuantity);
+          errors.push({
+            titles: group.titles,
+            required: group.moq,
+            current: group.totalQuantity,
+          });
           for (const key of group.keys) {
             trySetQuantityInputMin({ key }, group.moq);
           }
         }
       }
 
-      if (hasError) {
-        disableCheckout();
+      const hasError = errors.length > 0;
+
+      if (hasError) renderMoqWarnings(errors);
+      else clearMoqWarnings();
+
+      if (!config.enabled) {
+        enableActionButtons();
+      } else if (hasError) {
+        disableActionButtons();
       } else {
-        enableCheckout();
+        enableActionButtons();
       }
     } catch (error) {
       console.error("MOQ validation error:", error);
@@ -309,11 +604,20 @@
   function init() {
     let isValidating = false;
     let debounceTimer = null;
+    let recheckTimer = null;
 
     async function runValidation() {
-      if (isValidating) return;
+      if (isValidating) {
+        // Una validación ya está en vuelo (el drawer se acaba de abrir, etc).
+        // Re-programamos en vez de descartar, o el estado queda obsoleto y los
+        // botones nunca se deshabilitan.
+        clearTimeout(recheckTimer);
+        recheckTimer = setTimeout(runValidation, VALIDATION_DEBOUNCE_MS);
+        return;
+      }
       isValidating = true;
       try {
+        await loadConfig();
         await validateCartMoq();
       } finally {
         isValidating = false;
@@ -328,10 +632,12 @@
     // Validate on page load (sin debounce, queremos feedback inmediato)
     runValidation();
 
-    // Observe cart changes — con debounce + guard para evitar el bucle
-    // infinito que se generaba porque insertar/remover el propio banner
-    // disparaba nuevas mutaciones del DOM.
-    const observer = new MutationObserver(() => {
+    // Observe cart changes — con debounce, y descartando las mutaciones que
+    // genera el propio script (pintar/borrar el banner). Sin ese filtro, cada
+    // validacion se disparaba a si misma y el banner entraba en bucle.
+    const observer = new MutationObserver((records) => {
+      if (ignoreMutations) return;
+      if (records.length && records.every(isBannerOnlyMutation)) return;
       scheduleValidation();
     });
 
@@ -344,18 +650,32 @@
     document.addEventListener("cart:change", scheduleValidation);
     document.addEventListener("cart:refresh", scheduleValidation);
 
-    // Intercept fetch/XHR for cart updates
+    // Intercept fetch/XHR for cart updates.
+    // Ojo: el segundo argumento de .then() (rechazo) es obligatorio — sin el,
+    // cualquier /cart/add fallido genera un unhandled rejection en consola.
     const originalFetch = window.fetch;
     window.fetch = function (...args) {
       const result = originalFetch.apply(this, args);
-      if (args[0] && typeof args[0] === "string") {
+      try {
+        const requestUrl =
+          typeof args[0] === "string"
+            ? args[0]
+            : args[0] instanceof URL
+              ? args[0].href
+              : args[0]?.url || "";
+
         if (
-          args[0].includes("/cart/add") ||
-          args[0].includes("/cart/update") ||
-          args[0].includes("/cart/change")
+          requestUrl.includes("/cart/add") ||
+          requestUrl.includes("/cart/update") ||
+          requestUrl.includes("/cart/change")
         ) {
-          result.then(() => setTimeout(scheduleValidation, 100));
+          result.then(
+            () => setTimeout(scheduleValidation, 100),
+            () => {},
+          );
         }
+      } catch {
+        /* nunca romper el fetch del theme por esto */
       }
       return result;
     };
