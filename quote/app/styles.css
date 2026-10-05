@@ -1093,6 +1093,17 @@ body::after {
 
 .milestone-item:last-child { padding-bottom: 0; }
 
+.milestone-separator {
+	position: absolute;
+	left: 64px;
+	right: 0;
+	bottom: 16px;
+	height: 1px;
+	background: linear-gradient(to right, var(--border2), transparent);
+}
+
+.milestone-item:last-child .milestone-separator { display: none; }
+
 .milestone-dot-wrap {
 	flex-shrink: 0;
 	width: 40px;
@@ -2276,6 +2287,12 @@ body::after {
 		gap: 10pt;
 		padding-bottom: 10pt;
 		page-break-inside: avoid;
+	}
+
+	.milestone-separator {
+		left: 28pt;
+		bottom: 5pt;
+		background: #000;
 	}
 
 	.milestone-dot-wrap {
