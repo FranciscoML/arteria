@@ -1093,16 +1093,17 @@ body::after {
 
 .milestone-item:last-child { padding-bottom: 0; }
 
-.milestone-separator {
+.milestone-connector {
 	position: absolute;
-	left: 64px;
-	right: 0;
-	bottom: 16px;
-	height: 1px;
-	background: linear-gradient(to right, var(--border2), transparent);
+	left: 19px;
+	top: 11px;
+	bottom: -11px;
+	width: 1px;
+	background: var(--dot-color, var(--red));
+	opacity: 0.4;
 }
 
-.milestone-item:last-child .milestone-separator { display: none; }
+.milestone-item:last-child .milestone-connector { display: none; }
 
 .milestone-dot-wrap {
 	flex-shrink: 0;
@@ -2289,10 +2290,12 @@ body::after {
 		page-break-inside: avoid;
 	}
 
-	.milestone-separator {
-		left: 28pt;
-		bottom: 5pt;
-		background: #000;
+	.milestone-connector {
+		left: 8.5px;
+		top: 7.5pt;
+		bottom: -7.5pt;
+		background: #000 !important;
+		opacity: 1 !important;
 	}
 
 	.milestone-dot-wrap {
