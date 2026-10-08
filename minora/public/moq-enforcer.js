@@ -47,7 +47,7 @@
     messages: {
       title: "Minimum quantity required",
       description:
-        "To continue, you must meet the minimum quantity requirement for this product.",
+        "You must meet the minimum quantity requirement for this product.",
       blockedActionTitle:
         "No puedes proceder porque algunos productos no cumplen la cantidad minima.",
     },
@@ -327,14 +327,6 @@
     banner.innerHTML = `
     <!-- Header -->
     <div style="display: flex; align-items: flex-start; gap: 10px;">
-      <!-- Warning Icon -->
-      <div style="width: 30px;height: 30px;min-width: 30px;display: flex;align-items: center;justify-content: center;background: #fff0b8;border: 1px solid #f4c84a;border-radius: 50%;color: #a66a00;">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M12 3L22 20H2L12 3Z" fill="currentColor"/>
-          <path d="M12 9V13" stroke="white" stroke-width="2" stroke-linecap="round"/>
-          <circle cx="12" cy="16.5" r="1" fill="white"/>
-        </svg>
-      </div>
 
       <!-- Message -->
       <div style="flex: 1; min-width: 0;">
@@ -362,11 +354,11 @@
       <div style="flex-shrink: 0;padding: 5px 9px;background: #fff0bd;border: 1px solid #f0cc5b;border-radius: 999px;font-size: 12px;line-height: 16px;font-weight: 600;color: #8a5b00;white-space: nowrap;">
         Actual: ${current}
       </div>
-    </div>
 
-    <!-- Remaining -->
-    <div style="margin-top: 9px; font-size: 12px; line-height: 16px; color: #806a16;">
-      Faltan <strong style="color: #6b4d00;">${remaining} ${remaining === 1 ? "unidad" : "unidades"}</strong> para alcanzar el minimo.
+      <!-- Remaining -->
+      <div style="margin-top: 9px; font-size: 12px; line-height: 16px; color: #806a16;">
+        Faltan: ${remaining} ${remaining === 1 ? "unidad" : "unidades"}
+      </div>
     </div>
   `;
 
