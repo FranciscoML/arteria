@@ -1,5 +1,16 @@
 /**
  * MOQ Pako
+ *
+ * Corre en el storefront de cada tienda. Los selectores y textos NO estan
+ * hardcodeados: se leen de la config por tienda via app proxy
+ * (`/apps/minora/api/moq-config` -> GET /api/moq-config?shop=<dominio>), que a
+ * su vez lee `app/config/moq-enforcer.<label>.json`. Asi, adaptar el script al
+ * tema de una tienda nueva es editar un JSON, sin recompilar ni re-subir el
+ * asset.
+ *
+ * OJO: `/apps/minora/config` NO es esta config — esa ruta la consume la
+ * extension de checkout (`moq-config.<label>.json`). Cada consumidor tiene su
+ * propia ruta.
  */
 
 (function () {
@@ -23,6 +34,9 @@
       // lista, el banner va a TODOS los elementos que coincidan, lo que permite
       // mostrarlo a la vez en el drawer y en la pagina /cart.
       warningBanner: "",
+      // Si el contenedor tiene un hijo directo que coincide con este selector,
+      // el banner se inserta DESPUES de el (p. ej. ".drawer-header"). Si no, prepend.
+      warningBannerAfter: "",
       checkoutButton:
         'button[name="checkout"], a[href="/checkout"], [data-checkout-button]',
       // OJO: no usar `a[href="/cart"]` aqui. En la mayoria de temas ese es el
@@ -194,6 +208,24 @@
    * - Sin ese selector: heuristico legacy, el primer contenedor visible de
    *   `cartForm` (o el primero que exista).
    */
+  function insertBanner(target, banner) {
+    const afterSel = config.selectors.warningBannerAfter;
+    if (afterSel) {
+      try {
+        const anchor = Array.from(target.children).find((child) =>
+          child.matches(afterSel),
+        );
+        if (anchor) {
+          anchor.after(banner);
+          return;
+        }
+      } catch (e) {
+        console.warn("[moq] selector invalido:", afterSel, e);
+      }
+    }
+    target.prepend(banner);
+  }
+
   function findBannerTargets() {
     const bannerSelector = config.selectors.warningBanner;
     if (bannerSelector) return queryAll(bannerSelector);
@@ -358,9 +390,9 @@
 
     const expected = errors.length * targets.length;
     const placed = document.querySelectorAll(BANNER_SELECTOR).length;
-    const allInPlace = targets.every(
-      (el) => !el.querySelector(BANNER_SELECTOR),
-    );
+    const allInPlace =
+      errors.length === 0 ||
+      targets.every((el) => el.querySelector(BANNER_SELECTOR));
 
     if (stateKey === renderedStateKey && placed === expected && allInPlace) {
       return;
@@ -374,7 +406,9 @@
       renderedStateKey = stateKey;
       removeMoqBanners();
       for (const target of targets) {
-        for (const banner of banners) target.prepend(banner.cloneNode(true));
+        for (const banner of banners) {
+          insertBanner(target, banner.cloneNode(true));
+        }
       }
     });
   }
