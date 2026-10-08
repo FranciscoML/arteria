@@ -29,19 +29,11 @@
     selectors: {
       cartForm:
         'form[action="/cart"], [data-cart-form], .cart-items, .cart-drawer, [data-cart-drawer], .cart-drawer__content, .cart-drawer__wrapper, .mini-cart, [data-mini-cart], .cart-popup, #cart-drawer, [data-drawer="cart"], .cart__container, .cart__contents, .drawer__content',
-      // Contenedor(es) donde se inserta el banner. Vacio = heuristico legacy
-      // (primer contenedor visible de `cartForm`). Si una tienda define esta
-      // lista, el banner va a TODOS los elementos que coincidan, lo que permite
-      // mostrarlo a la vez en el drawer y en la pagina /cart.
-      warningBanner: "",
       // Si el contenedor tiene un hijo directo que coincide con este selector,
       // el banner se inserta DESPUES de el (p. ej. ".drawer-header"). Si no, prepend.
       warningBannerAfter: "",
       checkoutButton:
         'button[name="checkout"], a[href="/checkout"], [data-checkout-button]',
-      // OJO: no usar `a[href="/cart"]` aqui. En la mayoria de temas ese es el
-      // icono del header que ABRE el drawer; bloquearlo deja el carrito
-      // inaccesible. El boton "Ver carrito" se detecta por texto, mas abajo.
       cartViewButton: ".cart-view-button, [data-view-cart], .cart__view-button",
     },
     messages: {
@@ -284,7 +276,7 @@
     banner.setAttribute(BANNER_ATTR, "true");
 
     banner.style.cssText = `
-    width: 100%;
+    width: 500px;
     box-sizing: border-box;
 
     background: #fff8e1;
