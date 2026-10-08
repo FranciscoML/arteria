@@ -356,7 +356,7 @@
       </div>
 
       <!-- Remaining -->
-      <div style="margin-top: 9px; font-size: 12px; line-height: 16px; color: #806a16;">
+      <div style="flex-shrink: 0;padding: 5px 9px;background: #fff0bd;border: 1px solid #f0cc5b;border-radius: 999px;font-size: 12px;line-height: 16px;font-weight: 600;color: #8a5b00;white-space: nowrap;">
         Faltan: ${remaining} ${remaining === 1 ? "unidad" : "unidades"}
       </div>
     </div>
