@@ -45,7 +45,7 @@
       cartViewButton: ".cart-view-button, [data-view-cart], .cart__view-button",
     },
     messages: {
-      title: "Minimum quantity required",
+      title: "⚠️ Minimum quantity required",
       description:
         "You must meet the minimum quantity requirement for this product.",
       blockedActionTitle:
