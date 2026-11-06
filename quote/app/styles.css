@@ -610,14 +610,113 @@ body::after {
 	border-right: 1px solid var(--border);
 }
 
-.budget-table tbody tr td div {
-	height: 22px;
-	border-radius: 3px;
-	width: 0;
-	animation: bar-fill .9s cubic-bezier(.22,1,.36,1) forwards;
-	animation-delay: var(--delay, .3s);
-	position: relative;
-	overflow: hidden;
+/* Tabla de una sola columna */
+.budget-table { width: 100%; }
+.budget-table .col-1 { width: 100%; }
+
+/* Fila de total, posterior a la descripción */
+.table-price {
+	display: flex;
+	align-items: baseline;
+	justify-content: flex-end;
+	gap: 6px;
+	margin-top: 24px;
+	padding-top: 18px;
+	border-top: 1px solid rgba(201,149,58,.3);
+	font-family: var(--font-primary);
+	font-weight: 700;
+	font-size: 1.5rem;
+	line-height: 1;
+	color: var(--gold-light);
+}
+
+.table-price::before {
+	content: 'Total';
+	margin-right: auto;
+	font-family: var(--font-secondary);
+	font-size: .75rem;
+	font-weight: 600;
+	letter-spacing: .18em;
+	text-transform: uppercase;
+	color: var(--gold);
+}
+
+.table-price small {
+	font-size: .95rem;
+	font-weight: 500;
+	opacity: .6;
+}
+
+/* Celdas de la tabla de presupuesto */
+.budget-table td {
+	vertical-align: top;
+	padding: 28px 24px;
+}
+
+.budget-table .table-title {
+	font-size: 1.05rem;
+	letter-spacing: .02em;
+	margin-bottom: 6px;
+}
+
+.budget-table .table-desc {
+	margin-top: 6px;
+	font-size: .95rem;
+	line-height: 1.6;
+}
+
+.table-lead {
+	font-size: .95rem;
+	font-weight: 300;
+	color: var(--muted);
+	line-height: 1.6;
+	max-width: 62ch;
+}
+
+/* Lista de entregables: etiqueta + descripción */
+.table-list {
+	list-style: none;
+	margin-top: 18px;
+}
+
+.table-list li {
+	display: grid;
+	grid-template-columns: 200px 1fr;
+	gap: 6px 24px;
+	padding: 13px 0;
+	border-top: 1px solid var(--border);
+	font-size: .95rem;
+	font-weight: 300;
+	line-height: 1.6;
+	color: var(--muted);
+}
+
+.table-list li strong {
+	font-family: var(--font-secondary);
+	font-size: .75rem;
+	font-weight: 600;
+	letter-spacing: .1em;
+	text-transform: uppercase;
+	color: var(--white);
+	padding-top: 4px;
+}
+
+.table-meta {
+	display: inline-block;
+	margin-top: 16px;
+	font-family: var(--font-secondary);
+	font-size: .72rem;
+	letter-spacing: .1em;
+	text-transform: uppercase;
+	color: var(--gold);
+	border: 1px solid rgba(201,149,58,.35);
+	background: rgba(201,149,58,.08);
+	padding: 5px 10px;
+	border-radius: 4px;
+}
+
+@media (max-width: 600px) {
+	.table-list li { grid-template-columns: 1fr; gap: 2px; }
 }
 
 .budget-table tbody tr {
@@ -1760,6 +1859,44 @@ body::after {
 		overflow: visible !important;
 		margin-top: 12pt !important;
 	}
+	
+	.table-list li {
+		grid-template-columns: 38mm 1fr;
+		border-top: .75pt solid #000 !important;
+		padding: 4pt 0;
+		font-size: 9pt;
+	}
+
+	.table-list li strong {
+		font-family: var(--font-mono);
+		font-size: 7pt; 
+	}
+
+	.table-meta { 
+		border-radius: 0 !important;
+		font-family: var(--font-mono);
+		font-size: 7pt;
+	}
+
+	.table-price {
+		border-top: 1.5pt solid #000 !important;
+		margin-top: 8pt;
+		padding-top: 6pt;
+		font-family: var(--font-mono);
+		font-size: 11pt;
+		color: #000 !important;
+	}
+
+	.table-price::before {
+		font-family: var(--font-mono);
+		font-size: 7.5pt;
+		letter-spacing: .14em;
+		color: #000 !important;
+	}
+
+	.table-price small {
+		opacity: 1 !important;
+	}
 
 	.budget-table {
 		min-width: 0 !important;
@@ -2226,7 +2363,7 @@ body::after {
 		display: block !important;
 	}
 
-	.grid-4-cols  { grid-template-columns: 46mm repeat(4, 1fr) !important; }
+	.grid-4-cols { grid-template-columns: 46mm repeat(4, 1fr) !important; }
 	.grid-10-cols { grid-template-columns: 40mm repeat(10, 1fr) !important; }
 
 	.phase-number {
